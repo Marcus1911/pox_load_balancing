@@ -47,7 +47,6 @@ adjacency = defaultdict(lambda:defaultdict(lambda:None))
 # Switches we know of.  [dpid] -> Switch
 switches = {}
 
-NUMBER = 0
 # ethaddr -> (switch, port)
 mac_map = {}
 
@@ -376,10 +375,6 @@ class Switch (EventMixin):
         log.debug("%s unknown -- flooding" % (packet.dst,))
         flood()
       else:
-
-        global NUMBER
-        NUMBER +=1
-        print NUMBER
         dest = mac_map[packet.dst]
         match = of.ofp_match.from_packet(packet)
         self.install_path(dest[0], dest[1], match, event)

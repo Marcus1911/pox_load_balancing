@@ -322,7 +322,6 @@ class Switch(EventMixin):
     Attempts to install a path between this switch and some destination
     """
         p = _get_path(self, dst_sw, event.port, last_port, match)
-        print p
         if p is None:
             log.warning("Can't get from %s to %s", match.dl_src, match.dl_dst)
 
@@ -372,9 +371,8 @@ class Switch(EventMixin):
 
         # Now reverse it and install it backwards
         # (we'll just assume that will work)
-        if match.dl_type != 254:
-            p = [(sw, out_port, in_port) for sw, in_port, out_port in p]
-            self._install_path(p, match.flip())
+        p = [(sw, out_port, in_port) for sw, in_port, out_port in p]
+        self._install_path(p, match.flip())
 
 
     def _handle_PacketIn(self, event):
