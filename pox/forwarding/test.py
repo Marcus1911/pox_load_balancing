@@ -54,7 +54,7 @@ mac_map = {}
 # [sw1][sw2] -> (distance, intermediate)
 path_map = defaultdict(lambda: defaultdict(lambda: (None, None)))
 
-round_robin = defaultdict(lambda: defaultdict(lambda: []))
+best_intermediate = defaultdict(lambda: defaultdict(lambda: []))
 used_round_robin = defaultdict(lambda: defaultdict(lambda: []))
 
 will_round_robin= defaultdict(lambda: defaultdict(lambda: []))
@@ -62,6 +62,7 @@ will_round_robin= defaultdict(lambda: defaultdict(lambda: []))
 best_path = defaultdict(lambda: defaultdict(lambda: []))
 current_path = defaultdict(lambda: defaultdict(lambda: []))
 
+hash_list = defaultdict(lambda: defaultdict(lambda: []))
 
 # Waiting path.  (dpid,xid)->WaitingPath
 waiting_paths = {}
@@ -119,7 +120,7 @@ def _calc_paths():
     for i in sws:
         for j in sws:
             best_path[i][j] = _get_node_list(i, j)
-            round_robin[i][j].append(path_map[i][j][1])
+            best_intermediate[i][j].append(path_map[i][j][1])
 
     for k in sws:
         for i in sws:
@@ -131,7 +132,22 @@ def _calc_paths():
                             path_map[i][j] = (distance, k)
                             current_path[i][j] = _get_node_list(i, j)
                             if current_path[i][j] != best_path[i][j]:
-                                round_robin[i][j].append(k)
+                                best_intermediate[i][j].append(k)
+
+    for i in sws:
+        for j in sws:
+            if not best_intermediate[i][j]:
+                index = 0
+                for _ in range(256):
+                    if index == len(best_intermediate[i][j]):
+                        index =0
+                    hash_list[i][j].append(best_intermediate[i][j][index])
+                    i = i+1
+    print hash_list
+
+
+
+
 
     '''for i in sws:
         for j in sws:
@@ -186,12 +202,11 @@ def _get_path(src, dst, first_port, final_port, match):
         path = [src]
     else:
         if len(path_map) ==0:_calc_paths()
-        if not all(x is None for x in round_robin[src][dst]) and len(round_robin[src][dst])!=0 and match.dl_type != 2054:
-            if used_round_robin[src][dst] == round_robin[src][dst]:
-                del used_round_robin[src][dst][:]
-            will_round_robin[src][dst] = [x for x in round_robin[src][dst] if x not in used_round_robin[src][dst]]
-            path_map[src][dst] = (path_map[src][dst],will_round_robin[src][dst][0])
-            used_round_robin[src][dst].append(will_round_robin[src][dst][0])
+        if not all(x is None for x in best_intermediate[src][dst]) and len(best_intermediate[src][dst])!=0 and match.dl_type != 2054:
+            source_mac = ord(match.dl_src._value[5])
+            dest_mac = ord(match.dl_dst._value[5])
+            hash_result_index = source_mac^dest_mac
+            path_map[src][dst] = (path_map[src][dst][0],hash_list[src][dst][hash_result_index])
         path = _get_raw_path(src, dst)
         if path is None: return None
         path = [src] + path + [dst]
