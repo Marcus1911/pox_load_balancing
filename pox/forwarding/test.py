@@ -190,7 +190,7 @@ def _get_path(src, dst, first_port, final_port, match):
             if used_round_robin[src][dst] == round_robin[src][dst]:
                 del used_round_robin[src][dst][:]
             will_round_robin[src][dst] = [x for x in round_robin[src][dst] if x not in used_round_robin[src][dst]]
-            path_map[src][dst] = (path_map[src][dst],will_round_robin[src][dst][0])
+            path_map[src][dst] = (path_map[src][dst][0],will_round_robin[src][dst][0])
             used_round_robin[src][dst].append(will_round_robin[src][dst][0])
         path = _get_raw_path(src, dst)
         if path is None: return None
