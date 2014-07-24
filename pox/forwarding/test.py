@@ -55,9 +55,7 @@ mac_map = {}
 path_map = defaultdict(lambda: defaultdict(lambda: (None, None)))
 
 best_intermediate = defaultdict(lambda: defaultdict(lambda: []))
-used_round_robin = defaultdict(lambda: defaultdict(lambda: []))
 
-will_round_robin= defaultdict(lambda: defaultdict(lambda: []))
 
 best_path = defaultdict(lambda: defaultdict(lambda: []))
 current_path = defaultdict(lambda: defaultdict(lambda: []))
@@ -136,14 +134,13 @@ def _calc_paths():
 
     for i in sws:
         for j in sws:
-            if not best_intermediate[i][j]:
+            if best_intermediate[i][j]!= []:
                 index = 0
                 for _ in range(256):
                     if index == len(best_intermediate[i][j]):
                         index =0
                     hash_list[i][j].append(best_intermediate[i][j][index])
-                    i = i+1
-    print hash_list
+                    index += 1
 
 
 
@@ -210,6 +207,7 @@ def _get_path(src, dst, first_port, final_port, match):
         path = _get_raw_path(src, dst)
         if path is None: return None
         path = [src] + path + [dst]
+        print path
 
     # Now add the ports
     r = []
