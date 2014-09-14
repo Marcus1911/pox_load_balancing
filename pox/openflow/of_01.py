@@ -31,7 +31,7 @@ from pox.lib.socketcapture import CaptureSocket
 import pox.openflow.debug
 from pox.openflow.util import make_type_to_unpacker_table
 from pox.openflow import *
-
+import pdb
 log = core.getLogger()
 
 import socket
@@ -242,6 +242,8 @@ def handle_OFPST_QUEUE (con, parts):
 def handle_VENDOR (con, msg):
   log.info("Vendor msg: " + str(msg))
 
+def handle_PORT_STATS(con, msg):
+  con.raiseEventNoErrors(PortStats,con,msg)
 
 # A list, where the index is an OFPT, and the value is a function to
 # call for that type
@@ -261,6 +263,7 @@ handlerMap = {
   of.OFPT_STATS_REPLY : handle_STATS_REPLY,
   of.OFPT_FLOW_REMOVED : handle_FLOW_REMOVED,
   of.OFPT_VENDOR : handle_VENDOR,
+  of.OFPT_PORT_STATS : handle_PORT_STATS,
 }
 
 statsHandlerMap = {
@@ -587,6 +590,7 @@ class Connection (EventMixin):
     PortStatsReceived,
     QueueStatsReceived,
     FlowRemoved,
+    PortStats,
   ])
   
   # Globally unique identifier for the Connection instance

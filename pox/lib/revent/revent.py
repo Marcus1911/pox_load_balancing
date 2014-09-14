@@ -102,6 +102,7 @@ import operator
 # weakrefs are used for some event handlers so that just having an event
 # handler set will not keep the source (publisher) alive.
 import weakref
+from pprint import pprint
 
 
 _nextEventID = 0
@@ -247,6 +248,7 @@ class EventMixin (object):
     were no listeners) in which case returns None.
     """
     self._eventMixin_init()
+    a = self._eventMixin_handlers
 
     classCall = False
     if isinstance(event, Event):

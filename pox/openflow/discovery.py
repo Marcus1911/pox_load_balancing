@@ -25,7 +25,7 @@ on core.openflow_discovery.
 It's possible that some of this should be abstracted out into a generic
 Discovery module, or a Discovery superclass.
 """
-
+import pdb
 from pox.lib.revent import *
 from pox.lib.recoco import Timer
 from pox.lib.util import dpid_to_str, str_to_bool
@@ -83,6 +83,9 @@ class LLDPSender (object):
       self.add_port(event.dpid, event.port, event.ofp.desc.hw_addr)
     elif event.deleted:
       self.del_port(event.dpid, event.port)
+
+  def _handle_openflow_PortStats (self, event):
+    print 'hello'
 
   def _handle_openflow_ConnectionUp (self, event):
     self.del_switch(event.dpid, set_timer = False)

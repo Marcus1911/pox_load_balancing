@@ -92,6 +92,12 @@ class PortStatus (Event):
     self.deleted = ofp.reason == of.OFPPR_DELETE
     self.port = ofp.desc.port_no
 
+class PortStats (Event):
+  def __init__ (self,connection):
+    Event.__init__(self)
+    self.connection = connection
+    self.dpid = connection.dpid
+
 class FlowRemoved (Event):
   """
   Raised when a flow entry has been removed from a flow table.
@@ -314,6 +320,7 @@ class OpenFlowNexus (EventMixin):
     PortStatsReceived,
     QueueStatsReceived,
     FlowRemoved,
+    PortStats,
   ])
 
   # Bytes to send to controller when a packet misses all flows
