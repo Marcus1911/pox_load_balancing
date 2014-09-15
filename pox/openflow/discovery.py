@@ -87,6 +87,9 @@ class LLDPSender (object):
 
   def _handle_openflow_PortStats (self, event):
     print 'hello'
+    print event.ofp.port_no
+    print event.ofp.rx_bytes
+    print event.ofp.tx_bytes
 
   def _handle_openflow_ConnectionUp (self, event):
     self.del_switch(event.dpid, set_timer = False)

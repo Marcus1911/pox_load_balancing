@@ -3816,11 +3816,12 @@ class ofp_port_status (ofp_header):
 
 @openflow_s_message("OFPT_PORT_STATS",22)
 class ofpt_port_stats(ofp_header):
+
   def __init__ (self, **kw):
     ofp_header.__init__(self)
-    self.port_no = 0
-    self.tx_bytes = 0
-    self.rx_bytes = 0
+    self.port_no = 10
+    self.tx_bytes = 10
+    self.rx_bytes = 10
 
     initHelper(self,kw)
 

@@ -93,10 +93,11 @@ class PortStatus (Event):
     self.port = ofp.desc.port_no
 
 class PortStats (Event):
-  def __init__ (self,connection):
+  def __init__ (self,connection,ofp):
     Event.__init__(self)
     self.connection = connection
     self.dpid = connection.dpid
+    self.ofp = ofp
 
 class FlowRemoved (Event):
   """
