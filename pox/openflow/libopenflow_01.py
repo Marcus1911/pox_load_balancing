@@ -3816,8 +3816,7 @@ class ofp_port_status (ofp_header):
 
 @openflow_s_message("OFPT_PORT_STATS",22)
 class ofpt_port_stats(ofp_header):
-  
-  def __init__(self, **kw):
+  def __init__ (self, **kw):
     ofp_header.__init__(self)
     self.port_no = 0
     self.tx_bytes = 0
@@ -3838,7 +3837,7 @@ class ofpt_port_stats(ofp_header):
 
   def unpack(self, raw, offset=0):
     offset,length = self._unpack_header(raw, offset)
-    offset,(self.port_no) = _unpack("!H", raw, offset)
+    offset,(self.port_no,) = _unpack("!H", raw, offset)
     offset = _skip(raw, offset, 6)
     offset,(self.tx_bytes,) = _unpack("!Q", raw, offset)
     offset,(self.rx_bytes,) = _unpack("!Q", raw, offset)

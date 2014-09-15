@@ -79,6 +79,7 @@ class LLDPSender (object):
     """
     Track changes to switch ports
     """
+    print 'portStatus'
     if event.added:
       self.add_port(event.dpid, event.port, event.ofp.desc.hw_addr)
     elif event.deleted:

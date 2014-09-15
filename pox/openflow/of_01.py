@@ -243,7 +243,9 @@ def handle_VENDOR (con, msg):
   log.info("Vendor msg: " + str(msg))
 
 def handle_PORT_STATS(con, msg):
-  con.raiseEventNoErrors(PortStats,con,msg)
+  e = con.ofnexus.raiseEventNoErrors(PortStats, con, msg)
+  if e is None:
+    con.raiseEventNoErrors(PortStats,con,msg)
 
 # A list, where the index is an OFPT, and the value is a function to
 # call for that type

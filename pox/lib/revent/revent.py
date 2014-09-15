@@ -248,7 +248,6 @@ class EventMixin (object):
     were no listeners) in which case returns None.
     """
     self._eventMixin_init()
-    a = self._eventMixin_handlers
 
     classCall = False
     if isinstance(event, Event):
