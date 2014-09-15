@@ -20,7 +20,6 @@
 # substantially altered since then.
 
 from __future__ import print_function
-
 import struct
 import operator
 import collections
@@ -3831,7 +3830,7 @@ class ofpt_port_stats(ofp_header):
     packed = b""
     packed += ofp_header.pack(self)
     packed += struct.pack("!H", self.port_no)
-    packed += _PAD * 6
+    packed += _PAD6
     packed += struct.pack("!QQ",self.tx_bytes, self.rx_bytes)
     return packed
 
