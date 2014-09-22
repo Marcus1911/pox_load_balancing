@@ -3818,9 +3818,11 @@ class ofpt_port_stats(ofp_header):
 
   def __init__ (self, **kw):
     ofp_header.__init__(self)
-    self.port_no = 10
-    self.tx_bytes = 10
-    self.rx_bytes = 10
+    self.port_no = 0
+    self.tx_congestion = 0
+    self.tx_bytes = 0
+    self.rx_bytes = 0
+    self.hw_addr = EMPTY_ETH
 
     initHelper(self,kw)
 
@@ -3838,7 +3840,9 @@ class ofpt_port_stats(ofp_header):
   def unpack(self, raw, offset=0):
     offset,length = self._unpack_header(raw, offset)
     offset,(self.port_no,) = _unpack("!H", raw, offset)
-    offset = _skip(raw, offset, 6)
+    offset,self.hw_addr = _readether(raw, offset)
+    offset = _skip(raw, offset, 7)
+    offset,(self.tx_congestion,) = _unpack("!B",raw,offset)
     offset,(self.tx_bytes,) = _unpack("!Q", raw, offset)
     offset,(self.rx_bytes,) = _unpack("!Q", raw, offset)
     assert length == len(self)
@@ -3847,7 +3851,7 @@ class ofpt_port_stats(ofp_header):
 
   @staticmethod
   def __len__():
-    return 32
+    return 40
 
 
 

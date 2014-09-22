@@ -502,6 +502,13 @@ class l2_multi (EventMixin):
     #log.debug("Notify waiting packet %s,%s", event.dpid, event.xid)
     wp.notify(event)
 
+  def _handle_PortStats(self, event):
+      print event.ofp.tx_congestion
+      if event.ofp.tx_congestion == 1:
+        print "del the port"
+      else:
+        print "add the port"
+
 
 def launch ():
   core.registerNew(l2_multi)
