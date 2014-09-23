@@ -133,15 +133,6 @@ def _calc_paths():
                             if current_path[i][j] != best_path[i][j]:
                                 round_robin[i][j].append(k)
 
-    '''for i in sws:
-        for j in sws:
-            if not all(x is None for x in round_robin[i][j]) and len(round_robin[i][j])!=0:
-                if used_round_robin[i][j] == round_robin[i][j]:
-                    del used_round_robin[i][j][:]
-                will_round_robin[i][j] = [x for x in round_robin[i][j] if x not in used_round_robin[i][j]]
-                path_map[i][j] = (path_map[i][j][0],will_round_robin[i][j][0])
-                used_round_robin[i][j].append(will_round_robin[i][j][0])'''
-
 
 def _get_raw_path(src, dst):
     """
@@ -204,6 +195,7 @@ def _get_path(src, dst, first_port, final_port, match):
         r.append((s1, in_port, out_port))
         in_port = adjacency[s2][s1]
     r.append((dst, in_port, final_port))
+    #print r
 
     assert _check_path(r), "Illegal path!"
 
@@ -570,6 +562,14 @@ class l2_multi(EventMixin):
             return
         #log.debug("Notify waiting packet %s,%s", event.dpid, event.xid)
         wp.notify(event)
+
+    def _handle_PortStats(self, event):
+      print event.ofp.tx_congestion
+      if event.ofp.tx_congestion == 1:
+          print "congestion happened "+"dpid is "+ str(event.dpid) + " the port number is " +str(event.ofp.port_no)
+      if event.ofp.tx_congestion == 0:
+          print "release the congestion"+"dpid is "+ str(event.dpid) + " the port number is " +str(event.ofp.port_no)
+
 
 
 def launch():

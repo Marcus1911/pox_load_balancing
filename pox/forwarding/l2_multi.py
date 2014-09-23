@@ -155,6 +155,7 @@ def _get_path (src, dst, first_port, final_port):
     r.append((s1,in_port,out_port))
     in_port = adjacency[s2][s1]
   r.append((dst,in_port,final_port))
+  print r
 
   assert _check_path(r), "Illegal path!"
 
@@ -505,9 +506,11 @@ class l2_multi (EventMixin):
   def _handle_PortStats(self, event):
       print event.ofp.tx_congestion
       if event.ofp.tx_congestion == 1:
-        print "del the port"
-      else:
-        print "add the port"
+          print "congestion happened "+"dpid is "+ str(event.dpid) + " the port number is " +str(event.ofp.port_no)
+      if event.ofp.tx_congestion == 0:
+          print "release the congestion"+"dpid is "+ str(event.dpid) + " the port number is " +str(event.ofp.port_no)
+
+
 
 
 def launch ():

@@ -29,7 +29,6 @@ def make_type_to_unpacker_table ():
   top = max(of._message_type_to_class)
 
   r = [of._message_type_to_class[i].unpack_new for i in range(0, top+1)]
-  print r
 
 
   return r
