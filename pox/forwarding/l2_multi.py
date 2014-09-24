@@ -155,7 +155,7 @@ def _get_path (src, dst, first_port, final_port):
     r.append((s1,in_port,out_port))
     in_port = adjacency[s2][s1]
   r.append((dst,in_port,final_port))
-  print r
+  #print r
 
   assert _check_path(r), "Illegal path!"
 
@@ -503,12 +503,12 @@ class l2_multi (EventMixin):
     #log.debug("Notify waiting packet %s,%s", event.dpid, event.xid)
     wp.notify(event)
 
-  def _handle_PortStats(self, event):
+  '''def _handle_PortStats(self, event):
       print event.ofp.tx_congestion
       if event.ofp.tx_congestion == 1:
           print "congestion happened "+"dpid is "+ str(event.dpid) + " the port number is " +str(event.ofp.port_no)
       if event.ofp.tx_congestion == 0:
-          print "release the congestion"+"dpid is "+ str(event.dpid) + " the port number is " +str(event.ofp.port_no)
+          print "release the congestion"+"dpid is "+ str(event.dpid) + " the port number is " +str(event.ofp.port_no)'''
 
 
 

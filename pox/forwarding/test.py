@@ -32,6 +32,7 @@ Works with openflow.spanning_tree
 
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
+from pox.lib.packet.ipv4 import ipv4
 from pox.lib.revent import *
 from pox.lib.recoco import Timer
 from collections import defaultdict
@@ -52,7 +53,8 @@ switches = {}
 mac_map = {}
 
 port_tx_congestion = defaultdict(lambda: defaultdict(lambda:None))
-tx_congestion = False
+
+all_path_tx_congestion = False
 # [sw1][sw2] -> (distance, intermediate)
 path_map = defaultdict(lambda: defaultdict(lambda: (None, None)))
 
@@ -81,10 +83,9 @@ PATH_SETUP_TIME = 4
 
 def _init_tx_congestion():
     sws = switches.values()
-
     for i in sws:
         for j in sws:
-            if adjacency[i][j] != None:
+            if adjacency[i][j] is not None:
                 port_tx_congestion[i][adjacency[i][j]] = True
 
 def _calc_paths():
@@ -182,21 +183,19 @@ def _get_path(src, dst, first_port, final_port, match):
   Gets a cooked path -- a list of (node,in_port,out_port)
   """
     # Start with a raw path...
-    while (tx_congestion is False):
+    print '-----------------------------------------------------------------'
+    print 'source is ' + str(match._nw_src)
+    print 'dest is ' + str(match._nw_dst)
+    print 'type is ' + str(match._dl_type)
+    print  'the protocol is ' + str(match._nw_proto)
+    global  all_path_tx_congestion
+    while True:
         if src == dst:
             path = [src]
         else:
             if len(path_map) ==0:
                 _calc_paths()
                 _init_tx_congestion()
-
-            '''if not all(x is None for x in round_robin[src][dst]) and len(round_robin[src][dst])!=0 and match.dl_type != 2054:
-                if used_round_robin[src][dst] == round_robin[src][dst]:
-                    del used_round_robin[src][dst][:]
-                will_round_robin[src][dst] = [x for x in round_robin[src][dst] if x not in used_round_robin[src][dst]]
-                path_map[src][dst] = (path_map[src][dst][0],will_round_robin[src][dst][0])
-                used_round_robin[src][dst].append(will_round_robin[src][dst][0])'''
-
             path = _get_raw_path(src, dst)
             if path is None: return None
             path = [src] + path + [dst]
@@ -209,19 +208,27 @@ def _get_path(src, dst, first_port, final_port, match):
             r.append((s1, in_port, out_port))
             in_port = adjacency[s2][s1]
         r.append((dst, in_port, final_port))
+        print 'path is' + str(r)
+        print 'all_path_tx_congestion is ' + str(all_path_tx_congestion)
 
     #    assert _check_path(r), "Illegal path!"
-        for x in r:
-            if port_tx_congestion[ x[1]][x[-1]] is False:
-                if used_round_robin[src][dst] == round_robin[src][dst]:
-                    del used_round_robin[src][dst][:]
-                will_round_robin[src][dst] = [x for x in round_robin[src][dst] if x not in used_round_robin[src][dst]]
-                path_map[src][dst] = (path_map[src][dst][0],will_round_robin[src][dst][0])
-                used_round_robin[src][dst].append(will_round_robin[src][dst][0])
+        port_tx_congestion_list = []
+        for x in r[:-1]:
+            if port_tx_congestion[x[0]][x[-1]] is not None:
+                port_tx_congestion_list.append(port_tx_congestion[x[0]][x[-1]])
 
+        print 'port_tx_congestion_list is' + str(port_tx_congestion_list)
 
+        if all(port_tx_congestion_list):
+            return r
+        else:
+            if used_round_robin[src][dst] == round_robin[src][dst]:
+                del used_round_robin[src][dst][:]
+                return None
+            will_round_robin[src][dst] = [x for x in round_robin[src][dst] if x not in used_round_robin[src][dst]]
+            path_map[src][dst] = (path_map[src][dst][0],will_round_robin[src][dst][0])
+            used_round_robin[src][dst].append(will_round_robin[src][dst][0])
 
-    return r
 
 
 class WaitingPath(object):
@@ -336,6 +343,7 @@ class Switch(EventMixin):
     Attempts to install a path between this switch and some destination
     """
         p = _get_path(self, dst_sw, event.port, last_port, match)
+        print 'the path is ' + str(p)
         if p is None:
             log.warning("Can't get from %s to %s", match.dl_src, match.dl_dst)
 
@@ -586,11 +594,12 @@ class l2_multi(EventMixin):
         wp.notify(event)
 
     def _handle_PortStats(self, event):
-      print event.ofp.tx_congestion
       if event.ofp.tx_congestion == 1:
-          print "congestion happened "+"dpid is "+ str(event.dpid) + " the port number is " +str(event.ofp.port_no)
+          port_tx_congestion[switches[event.dpid]][event.ofp.port_no] = False
+          #print port_tx_congestion[switches[event.dpid]][event.ofp.port_no]
       if event.ofp.tx_congestion == 0:
-          print "release the congestion"+"dpid is "+ str(event.dpid) + " the port number is " +str(event.ofp.port_no)
+          port_tx_congestion[switches[event.dpid]][event.ofp.port_no] = True
+          #print port_tx_congestion[switches[event.dpid]][event.ofp.port_no]
 
 
 
