@@ -51,6 +51,8 @@ switches = {}
 # ethaddr -> (switch, port)
 mac_map = {}
 
+port_tx_congestion = defaultdict(lambda: defaultdict(lambda:None))
+tx_congestion = False
 # [sw1][sw2] -> (distance, intermediate)
 path_map = defaultdict(lambda: defaultdict(lambda: (None, None)))
 
@@ -76,6 +78,14 @@ FLOW_HARD_TIMEOUT = 30
 # How long is allowable to set up a path?
 PATH_SETUP_TIME = 4
 
+
+def _init_tx_congestion():
+    sws = switches.values()
+
+    for i in sws:
+        for j in sws:
+            if adjacency[i][j] != None:
+                port_tx_congestion[i][adjacency[i][j]] = True
 
 def _calc_paths():
     def _get_node_list(src, dst):
@@ -172,32 +182,44 @@ def _get_path(src, dst, first_port, final_port, match):
   Gets a cooked path -- a list of (node,in_port,out_port)
   """
     # Start with a raw path...
-    #print '_get_path'
-    if src == dst:
-        path = [src]
-    else:
-        if len(path_map) ==0:_calc_paths()
-        if not all(x is None for x in round_robin[src][dst]) and len(round_robin[src][dst])!=0 and match.dl_type != 2054:
-            if used_round_robin[src][dst] == round_robin[src][dst]:
-                del used_round_robin[src][dst][:]
-            will_round_robin[src][dst] = [x for x in round_robin[src][dst] if x not in used_round_robin[src][dst]]
-            path_map[src][dst] = (path_map[src][dst][0],will_round_robin[src][dst][0])
-            used_round_robin[src][dst].append(will_round_robin[src][dst][0])
-        path = _get_raw_path(src, dst)
-        if path is None: return None
-        path = [src] + path + [dst]
+    while (tx_congestion is False):
+        if src == dst:
+            path = [src]
+        else:
+            if len(path_map) ==0:
+                _calc_paths()
+                _init_tx_congestion()
 
-    # Now add the ports
-    r = []
-    in_port = first_port
-    for s1, s2 in zip(path[:-1], path[1:]):
-        out_port = adjacency[s1][s2]
-        r.append((s1, in_port, out_port))
-        in_port = adjacency[s2][s1]
-    r.append((dst, in_port, final_port))
-    #print r
+            '''if not all(x is None for x in round_robin[src][dst]) and len(round_robin[src][dst])!=0 and match.dl_type != 2054:
+                if used_round_robin[src][dst] == round_robin[src][dst]:
+                    del used_round_robin[src][dst][:]
+                will_round_robin[src][dst] = [x for x in round_robin[src][dst] if x not in used_round_robin[src][dst]]
+                path_map[src][dst] = (path_map[src][dst][0],will_round_robin[src][dst][0])
+                used_round_robin[src][dst].append(will_round_robin[src][dst][0])'''
 
-    assert _check_path(r), "Illegal path!"
+            path = _get_raw_path(src, dst)
+            if path is None: return None
+            path = [src] + path + [dst]
+
+        # Now add the ports
+        r = []
+        in_port = first_port
+        for s1, s2 in zip(path[:-1], path[1:]):
+            out_port = adjacency[s1][s2]
+            r.append((s1, in_port, out_port))
+            in_port = adjacency[s2][s1]
+        r.append((dst, in_port, final_port))
+
+    #    assert _check_path(r), "Illegal path!"
+        for x in r:
+            if port_tx_congestion[ x[1]][x[-1]] is False:
+                if used_round_robin[src][dst] == round_robin[src][dst]:
+                    del used_round_robin[src][dst][:]
+                will_round_robin[src][dst] = [x for x in round_robin[src][dst] if x not in used_round_robin[src][dst]]
+                path_map[src][dst] = (path_map[src][dst][0],will_round_robin[src][dst][0])
+                used_round_robin[src][dst].append(will_round_robin[src][dst][0])
+
+
 
     return r
 
