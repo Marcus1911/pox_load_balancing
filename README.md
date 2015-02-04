@@ -1,5 +1,11 @@
-POX_load_balancing is just modification of the pox to add loading balancing function.
+POX Load Balancing 
 
-pox/forwarding/test.py is the modified file of pox/forwarding/l2_multi.py to add the load balancing function.
+A very useful modification of the pox to add Equal-Cost capability for all topologies.
 
-The test topology is 4 hosts h1,h2,h3,h4 which mac addresses end up with 01,02,03,04, 4 switches with switch id a,b,c,d. And h1,h2 attached to the switch a, and h3,h4 attached to the switch c. The links between switches are a-b-c-d-a, 4 switches diamond topology.
+Instructions:
+pox/forwarding/test.py is the modified file of pox/forwarding/l2_multi.py to add the round-robin(RR) function.
+
+Breafly Explanation: 
+test.py is equal cost version of the l2_multi.py component. In l2_multi.py it is used an scheme based on STP. As in this protocol, just one path is choosen for forwarding all packets, when there is a loop topology. Nevertheless, test.py allows forwarding through all paths avaliable, such as ECMP or TRILL.
+
+
