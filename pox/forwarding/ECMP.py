@@ -29,6 +29,9 @@ does (mostly) work. :)
 Depends on openflow.discovery
 Works with openflow.spanning_tree
 """
+import random
+from struct import pack
+from zlib import crc32
 
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
@@ -144,6 +147,8 @@ def _calc_paths():
                             if current_path[i][j] != best_path[i][j]:
                                 round_robin[i][j].append(k)
 
+
+    
 
 def _get_raw_path(src, dst):
     """
@@ -420,10 +425,31 @@ class Switch(EventMixin):
                 msg.in_port = event.port
                 self.connection.send(msg)
 
+        def _ecmp_hash(packet):
+	    "Return an ECMP-style 5-tuple hash for TCP/IP packets"
+	    hash_input = [0] * 5
+	    if isinstance(packet.next, ipv4):
+	      ip = packet.next
+	      hash_input[0] = ip.srcip.toUnsigned()
+	      hash_input[1] = ip.dstip.toUnsigned()
+	      hash_input[2] = ip.protocol
+	      
+	      #only these protocol are supported in OF 1.1
+	      tcp = packet.find('tcp')
+	      udp = packet.find('udp')
+	      if tcp or udp:
+		l4 = ip.next
+		hash_input[3] = l4.srcport
+		hash_input[4] = l4.dstport
+		return crc32(pack('LLHHH', *hash_input))
+	    return 0                           
+               
         packet = event.parsed
+        print "\n HASH TEST:", _ecmp_hash(packet)
 
         loc = (self, event.port)  # Place we saw this ethaddr
         oldloc = mac_map.get(packet.src)  # Place we last saw this ethaddr
+       
 
         if packet.effective_ethertype == packet.LLDP_TYPE:
             drop()
@@ -604,7 +630,25 @@ class l2_multi(EventMixin):
 
 
 def launch():
-    core.registerNew(l2_multi)
 
+    from samples.pretty_log import launch
+    launch()
+
+    from openflow.spanning_tree import launch
+    launch()
+
+    from host_tracker import launch
+    launch()
+
+    from openflow.of_01 import launch
+    launch(port= 1234)
+
+    from openflow.discovery import launch
+    launch()
+
+    from misc.full_payload import launch
+    launch()
+
+    core.registerNew(l2_multi)
     timeout = min(max(PATH_SETUP_TIME, 5) * 2, 15)
     Timer(timeout, WaitingPath.expire_waiting_paths, recurring=True)
